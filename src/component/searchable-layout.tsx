@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 export default function SearchableLayout({children}:{children:ReactNode}){
-    const [search, setSearch]
+    // const [search, setSearch] =
 
 
     return(
