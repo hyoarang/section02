@@ -1,4 +1,7 @@
-import { useRouter } from "next/router";    
+import { GetServerSideProps, GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import style from "./[id].module.css";
+import fetchOneBook from "@/lib/fetch-onebook";
+ 
 
 const mockData = {
 
@@ -12,21 +15,44 @@ const mockData = {
   
 }
 
-const Page = () =>{
+export const getServerSideProps = async(context: GetServerSidePropsContext)=>{
+  const id = context.params!.id;
+  const book = await fetchOneBook(Number(id));
+  return {
+    props:{book}
+  }
+}
+
+const Page = ({book}:InferGetServerSidePropsType<typeof getServerSideProps>) =>{
     //const router = useRouter();
    //const {id} = router.query;
+
+  if(!book){
+    return '예외가 발생 했습니다.  다시 시도하세요';
+  }
+
    const {
         id,
         title,
         subTitle,
-        sescription,
+        description,
         author,
         publisher,
         coverImgUrl
-   } = mockData;
-   return <div>
-        <divstyle={backgroundImage: `url('coverImgUrl')`}></div>
+   } = book;
+
+   return (
+    <div className={style.container}>
+      <div style={{ backgroundImage: `url(${coverImgUrl})` }}></div>
+      <img src={coverImgUrl} alt={title} />
+    
+        <div className={style.title}>{title}</div>
+        <div className={style.subTitle}>{subTitle}</div>
+        <div className={style.author}>{author} | {publisher }</div>
+        <div className={style.description}>{description}</div>
     </div>
+  );
+
 }
 
 export default Page;
