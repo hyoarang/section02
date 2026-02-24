@@ -1,6 +1,10 @@
 import { GetServerSideProps, GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import style from "./[id].module.css";
 import fetchOneBook from "@/lib/fetch-onebook";
+import {GetStaticPropsContext, InferGetStaticPropsType,} from "next";
+import { useRouter } from "next/router";
+import { notFound } from "next/navigation";
+import Head from "next/head";
  
 
 const mockData = {
@@ -15,17 +19,55 @@ const mockData = {
   
 }
 
-export const getServerSideProps = async(context: GetServerSidePropsContext)=>{
+//export const getServerSideProps = async(context: GetServerSidePropsContext)=>{
+export const getStaticProps = async(context: GetStaticPropsContext)=>{
   const id = context.params!.id;
   const book = await fetchOneBook(Number(id));
+
+  if(!book){
+    return {
+      notFound: true
+    }
+  }
+
   return {
     props:{book}
   }
 }
 
-const Page = ({book}:InferGetServerSidePropsType<typeof getServerSideProps>) =>{
+export const getStaticPaths = () =>{
+  return {
+    paths : [ 
+      {params: {id:"1"}},
+      {params: {id:"2"}},
+      {params: {id:"3"}}
+    ],
+    fallback: true
+  }
+}
+
+//const Page = ({book}:InferGetServerSidePropsType<typeof getServerSideProps>) =>{
+const Page = ({book}:InferGetStaticPropsType<typeof getStaticProps>) =>{
     //const router = useRouter();
    //const {id} = router.query;
+
+  const router = useRouter();
+
+  if(router.isFallback){
+    return (
+      <>
+        <Head>
+          <title>한입북스</title>
+          <meta property="og:image" content="thumbnail.png"/>
+          <meta property="og:title" content="한입북스"/>
+          <meta property="og:description" content="한입 북스에 등록된 도서들을 만나 보세요."/>
+        </Head>
+      
+      <div>로딩중입니다.</div>
+      </>
+    )
+  }
+    
 
   if(!book){
     return '예외가 발생 했습니다.  다시 시도하세요';
@@ -42,6 +84,13 @@ const Page = ({book}:InferGetServerSidePropsType<typeof getServerSideProps>) =>{
    } = book;
 
    return (
+    <>
+    <Head>
+        <title>{title}</title>
+        <meta property="og:image" content={coverImgUrl}/>
+        <meta property="og:title" content={title}/>
+        <meta property="og:description" content={description}/>
+      </Head>
     <div className={style.container}>
       <div style={{ backgroundImage: `url(${coverImgUrl})` }}></div>
       <img src={coverImgUrl} alt={title} />
@@ -51,6 +100,8 @@ const Page = ({book}:InferGetServerSidePropsType<typeof getServerSideProps>) =>{
         <div className={style.author}>{author} | {publisher }</div>
         <div className={style.description}>{description}</div>
     </div>
+
+    </>
   );
 
 }

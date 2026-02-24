@@ -2,35 +2,39 @@
 import { ReactNode } from "react";
 import style from "./index.module.css";
 import SearchableLayout from "@/component/searchable-layout";
-import books from "@/mock/books.json";
 import BookItem from "@/component/book-item";
 import { useEffect } from "react";
-import { InferGetServerSidePropsType } from "next";
+import {InferGetStaticPropsType} from "next";
 import fetchBooks from "@/lib/fetch-book";
 import fetchRandomBooks from "@/lib/fetch-random-books";
+import Head from "next/head";
 
-export const getServerSideProps = async() =>{
-  // console.log("서버사이드실행");
-  // const allBooks = await fetchBooks();
-  // const recoBooks = await fetchRandomBooks();
+//export const getServerSideProps = async() =>{
+ 
 
+ export const getStaticProps = async() =>{
   const [allBooks,recoBooks] = await Promise.all([
     fetchBooks(),
     fetchRandomBooks()
-
   ]);
 
+  
    
   return{
     props:{
       allBooks,
       recoBooks
-    }
+    },
+    
+
   }
+
+  
 }
 
 
-export default function Home({allBooks,recoBooks}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+//export default function Home({allBooks,recoBooks}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Home({allBooks,recoBooks}: InferGetStaticPropsType<typeof getStaticProps>) {
   //console.log(allBooks);
   useEffect(
     ()=>{
@@ -41,18 +45,27 @@ export default function Home({allBooks,recoBooks}: InferGetServerSidePropsType<t
   
 
   return (
-    <div className={style.container}>
-      <section>
-        <h3>지금 추천하는 도서</h3>
-        { recoBooks.map((book)=> {return <BookItem key={book.id} {...book}/>})}
-      </section>
-      <section>
-        <h3>등록된 모든 도서</h3>
-        {
-          allBooks.map((book)=><BookItem key={book.id} {...book}/>)
-        }
-      </section>
-    </div>
+
+    <>
+      <Head>
+        <title>한입북스</title>
+        <meta property="og:image" content="thumbnail.png"/>
+        <meta property="og:title" content="한입북스"/>
+        <meta property="og:description" content="한입 북스에 등록된 도서들을 만나 보세요."/>
+      </Head>
+      <div className={style.container}>
+        <section>
+          <h3>지금 추천하는 도서</h3>
+          { recoBooks.map((book)=> {return <BookItem key={book.id} {...book}/>})}
+        </section>
+        <section>
+          <h3>등록된 모든 도서</h3>
+          {
+            allBooks.map((book)=><BookItem key={book.id} {...book}/>)
+          }
+        </section>
+      </div>
+   </> 
   )
 }
 
